@@ -72,6 +72,7 @@ void AddSuccCnt()
 	int now = time(NULL);
 	if (now >iTime)
 	{
+        setvbuf(stdout, NULL, _IONBF, 0);
 		printf("time %d Succ Cnt %d Fail Cnt %d\n", iTime, iSuccCnt, iFailCnt);
 		iTime = now;
 		iSuccCnt = 0;
@@ -87,6 +88,7 @@ void AddFailCnt()
 	int now = time(NULL);
 	if (now >iTime)
 	{
+        setvbuf(stdout, NULL, _IONBF, 0);
 		printf("time %d Succ Cnt %d Fail Cnt %d\n", iTime, iSuccCnt, iFailCnt);
 		iTime = now;
 		iSuccCnt = 0;
@@ -190,29 +192,14 @@ int main(int argc,char *argv[])
 	struct sigaction sa;
 	sa.sa_handler = SIG_IGN;
 	sigaction( SIGPIPE, &sa, NULL );
-	
-	for(int k=0;k<proccnt;k++)
-	{
 
-		pid_t pid = fork();
-		if( pid > 0 )
-		{
-			continue;
-		}
-		else if( pid < 0 )
-		{
-			break;
-		}
-		for(int i=0;i<cnt;i++)
-		{
-			stCoRoutine_t *co = 0;
-			co_create( &co,NULL,readwrite_routine, &endpoint);
-			co_resume( co );
-		}
-		co_eventloop( co_get_epoll_ct(),0,0 );
-
-		exit(0);
-	}
+    for(int i=0;i<cnt;i++)
+    {
+        stCoRoutine_t *co = 0;
+        co_create( &co,NULL,readwrite_routine, &endpoint);
+        co_resume( co );
+    }
+    co_eventloop( co_get_epoll_ct(),0,0 );
 	return 0;
 }
 /*./example_echosvr 127.0.0.1 10000 100 50*/

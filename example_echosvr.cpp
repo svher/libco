@@ -220,36 +220,22 @@ int main(int argc,char *argv[])
 
 	SetNonBlock( g_listen_fd );
 
-	for(int k=0;k<proccnt;k++)
-	{
+    for(int i=0;i<cnt;i++)
+    {
+        task_t * task = (task_t*)calloc( 1,sizeof(task_t) );
+        task->fd = -1;
 
-		pid_t pid = fork();
-		if( pid > 0 )
-		{
-			continue;
-		}
-		else if( pid < 0 )
-		{
-			break;
-		}
-		for(int i=0;i<cnt;i++)
-		{
-			task_t * task = (task_t*)calloc( 1,sizeof(task_t) );
-			task->fd = -1;
+        co_create( &(task->co),NULL,readwrite_routine,task );
+        co_resume( task->co );
 
-			co_create( &(task->co),NULL,readwrite_routine,task );
-			co_resume( task->co );
+    }
+    stCoRoutine_t *accept_co = NULL;
+    co_create( &accept_co,NULL,accept_routine,0 );
+    co_resume( accept_co );
 
-		}
-		stCoRoutine_t *accept_co = NULL;
-		co_create( &accept_co,NULL,accept_routine,0 );
-		co_resume( accept_co );
-
-		co_eventloop( co_get_epoll_ct(),0,0 );
-
-		exit(0);
-	}
+    co_eventloop( co_get_epoll_ct(),0,0 );
 	if(!deamonize) wait(NULL);
+
 	return 0;
 }
 
